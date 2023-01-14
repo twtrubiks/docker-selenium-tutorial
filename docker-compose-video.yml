@@ -1,0 +1,19 @@
+version: "3"
+services:
+  chrome_standalone:
+    image: selenium/standalone-chrome
+    shm_size: 2gb
+    ports:
+      - "4444:4444"
+      - "6900:5900"  # 5900 for VNC Server
+      - "7900:7900"
+
+  chrome_video:
+    image: selenium/video:ffmpeg-4.3.1-20221219
+    volumes:
+      - ./videos:/videos
+    depends_on:
+      - chrome_standalone
+    environment:
+      - DISPLAY_CONTAINER_NAME=chrome_standalone
+      - FILE_NAME=chrome_video.mp4
