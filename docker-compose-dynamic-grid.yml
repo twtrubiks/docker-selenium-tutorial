@@ -1,0 +1,28 @@
+# Dynamic Grid: 每次有測試請求進來, hub 會即時 docker run 一個全新的瀏覽器容器,
+# 跑完馬上銷毀, 不會有 session 互相污染或殘留的問題.
+#
+# 啟動前要先建立 NodeDocker/config.toml (見下方說明), 並掛入 docker.sock,
+# 讓 node-docker 可以呼叫 host 上的 docker daemon 開新容器.
+#
+# 啟動: docker compose -f docker-compose-dynamic-grid.yml up
+services:
+  node-docker:
+    image: selenium/node-docker:4.43.0-20260404
+    volumes:
+      - ./assets:/opt/selenium/assets
+      - ./NodeDocker/config.toml:/opt/selenium/docker.toml
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  selenium-hub:
+    image: selenium/hub:4.43.0-20260404
+    container_name: selenium-hub
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"

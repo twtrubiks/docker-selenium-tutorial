@@ -1,19 +1,24 @@
-version: "3"
+# Standalone Chrome + 影片錄製 sidecar
+# 每個 session 會被錄成獨立 mp4 (檔名為 session id), 寫入 ./videos
+# 啟動: docker compose -f docker-compose-video.yml up
 services:
   chrome_standalone:
-    image: selenium/standalone-chrome
+    image: selenium/standalone-chrome:4.43.0-20260404
     shm_size: 2gb
     ports:
       - "4444:4444"
-      - "6900:5900"  # 5900 for VNC Server
       - "7900:7900"
+    environment:
+      - SE_NODE_GRID_URL=http://chrome_standalone:4444
 
   chrome_video:
-    image: selenium/video:ffmpeg-4.3.1-20221219
+    image: selenium/video:ffmpeg-8.1-20260404
     volumes:
       - ./videos:/videos
     depends_on:
       - chrome_standalone
     environment:
+      - SE_VIDEO_RECORD_STANDALONE=true # standalone 必加, 讓 video 容器輪詢 4444 而非 5555
       - DISPLAY_CONTAINER_NAME=chrome_standalone
-      - FILE_NAME=chrome_video.mp4
+      - SE_VIDEO_FILE_NAME=auto # 每個 session 一個檔, 用 session id 命名
+      # - FILE_NAME=chrome_video.mp4  # 或固定檔名 (整段全部錄一個檔)
